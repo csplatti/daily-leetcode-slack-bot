@@ -1,4 +1,5 @@
 import requests
+from datetime import datetime, timezone, timedelta
 
 LC_USER_BASE_URL = "https://leetcode.com/graphql"
 TEST_USER = "csplatti"
@@ -26,4 +27,12 @@ def getUserData(username: str):
     data = requests.post(URL, json=JSON, headers=HEADERS).json()
     return data['data']['recentAcSubmissionList']
 
-getUserData("csplatti")
+def getProblemsSolvedOnDate(username: str, date: datetime):
+    WANTED_KEYS = ["title", "titleSlug", "timestamp"]
+    data = getUserData(username)
+    for row in data:
+        row["timestamp"] = datetime.fromtimestamp(int(row["timestamp"]), tz=timezone.utc).date()
+    data = filter(lambda row: row["timestamp"] == date, data)
+    return [{key: row[key] for key in WANTED_KEYS} for row in data]
+
+print(getProblemsSolvedOnDate("csplatti", datetime.today().date() - timedelta(days=2)))
