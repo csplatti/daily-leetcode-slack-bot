@@ -37,3 +37,23 @@ def add_user(workspace_id: str, slack_id: str, lc_username: str):
     
     conn.commit()
     conn.close()
+
+def fetch_user(workspace_id: str, slack_id: str):
+    conn = connect()
+    with conn.cursor() as cur:
+        cur.execute(
+        """
+            SELECT slack_user_id, leetcode_username, current_streak, max_streak
+            FROM users
+            WHERE workspace_id = %s AND slack_user_id = %s;
+        """,
+        (workspace_id, slack_id))
+        res = cur.fetchall()[0]
+        print(res)
+
+    conn.close()
+    return {
+        "leetcode_username": res[1],
+        "current_streak": res[2],
+        "max_streak": res[3]
+    }

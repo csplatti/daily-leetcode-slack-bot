@@ -28,4 +28,5 @@ class LinkRequest(BaseModel):
 def add_to_tracker(payload: LinkRequest):
     print(payload)
     db.add_user(payload.workspace_id, payload.slack_id, payload.leetcode_username)
-    return {"added": "linked", "leetcode_username": payload.leetcode_username}
+    res = db.fetch_user(payload.workspace_id, payload.slack_id)
+    return {"added": "linked", "res": res, "leetcode_username": payload.leetcode_username}

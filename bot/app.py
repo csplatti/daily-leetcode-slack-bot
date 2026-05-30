@@ -67,11 +67,18 @@ def handle_commands():
             "slack_id": user_id,
             "leetcode_username": lc_username,
         }
-        db_response = requests.post("http://127.0.0.1:8000/add-to-tracker", json=json)
+        db_res = requests.post("http://127.0.0.1:8000/add-to-tracker", json=json).json()['res']
+        print(db_res)
         return jsonify({
             "response_type": "ephemeral",
             # "db_response": db_response.json(),
-            "text": f"Welcome to the jungle, {username}!"
+            "text": (
+            "Added!\n"
+            f"Leetcode Username: {db_res["leetcode_username"]}\n"
+            f"Current Streak: {db_res["current_streak"]}\n"
+            f"Max Streak: {db_res["max_streak"]}"
+            
+            )
             # "text": db_response.text
         })
 
