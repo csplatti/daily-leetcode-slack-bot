@@ -1,4 +1,16 @@
 import requests
+import slack
+import os
+from pathlib import Path
+from dotenv import load_dotenv
+
+env_path = Path("..") / ".env"
+load_dotenv(dotenv_path=env_path)
+
+client = slack.WebClient(token=os.environ['SLACK_TOKEN'])
+
+client.chat_postMessage(channel='#daily-leetcoders', text="Hello!")
+
 
 # TEST_URL = "http://127.0.0.1:8000/test"
 # r = requests.get(TEST_URL)
