@@ -2,11 +2,12 @@ brotlicffi @ file:///opt/miniconda3/conda-bld/brotlicffi_1764961161487/work
 certifi @ file:///Users/ec2-user/croot/certifi_1779370294849/work/certifi
 cffi @ file:///opt/miniconda3/conda-bld/cffi_1761832774023/work
 charset-normalizer @ file:///opt/miniconda3/conda-bld/charset-normalizer_1761744819392/work
+dotenv==0.9.9
 idna @ file:///Users/ec2-user/buildout/croot/idna_1763763781171/work
-psycopg==3.3.4
+psycopg @ file:///Users/ec2-user/croot/psycopg-split_1769677300327/work/psycopg
 psycopg-binary==3.3.4
-python-dotenv==1.0.1
 pycparser @ file:///Users/ec2-user/croot/pycparser_1774959675151/work
 PySocks @ file:///opt/miniconda3/conda-bld/pysocks_1761753010104/work
+python-dotenv==1.2.2
 requests @ file:///Users/ec2-user/croot/requests_1775066169396/work
 urllib3 @ file:///Users/ec2-user/croot/urllib3_1778536190991/work

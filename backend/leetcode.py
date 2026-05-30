@@ -23,8 +23,7 @@ def getUserData(username: str):
     "Referer": "https://leetcode.com",
     }
 
-    data = requests.post(URL, json=JSON, headers=HEADERS)
-    print(data)
-    print(data.json()['data']['recentAcSubmissionList'])
+    data = requests.post(URL, json=JSON, headers=HEADERS).json()
+    return data['data']['recentAcSubmissionList']
 
 getUserData("csplatti")
