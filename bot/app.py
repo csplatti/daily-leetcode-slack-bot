@@ -57,9 +57,25 @@ def handle_commands():
             "response_type": "in_channel",   # only the sender sees this
             "text": f"Linked hello",
         })
+    elif command == "/join-tracker":
+        lc_username = text
+        result = client.users_info(user=user_id)
+        username = result["user"]["name"]
 
-    return make_response("", 200)
+        json = {
+            "workspace_id": team_id,
+            "slack_id": user_id,
+            "leetcode_username": lc_username,
+        }
+        db_response = requests.post("http://127.0.0.1:8000/add-to-tracker", json=json)
+        return jsonify({
+            "response_type": "ephemeral",
+            # "db_response": db_response.json(),
+            "text": f"Welcome to the jungle, {username}!"
+            # "text": db_response.text
+        })
 
+    return make_response("Command Not Recognized", 400)
 
 
 # TEST_URL = "http://127.0.0.1:8000/test"
