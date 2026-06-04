@@ -83,14 +83,44 @@ def handle_commands():
 
     return make_response("Command Not Recognized", 400)
 
-def get_leaderboard(team_id: str):
-    query_result = requests.get(API_URL + "/leaderboard/" + team_id)
-    print(query_result.json())
-    return jsonify({
-            "response_type": "in_channel",
-            "text": f"Linked hello",
-        })
+RANK_PREFIXES = {0: "🥇", 1: "🥈", 2: "🥉"}
 
+def get_leaderboard(team_id: str):
+    query_result = requests.get(API_URL + "/leaderboard/" + team_id).json()
+    res = sorted(query_result['res'], key=lambda x: x['current_streak'], reverse=True)
+
+    lines = [
+        get_leaderboard_line(i, row["current_streak"], row["max_streak"], row["slack_id"])
+        for i, row in enumerate(res)
+    ]
+
+    blocks = [
+        {
+            "type": "header",
+            "text": {"type": "plain_text", "text": "🏆 Leaderboard", "emoji": True},
+        },
+        {"type": "divider"},
+        {
+            "type": "section",
+            "text": {"type": "mrkdwn", "text": "\n".join(lines) or "_No participants yet._"},
+        },
+    ]
+
+    return jsonify({
+        "response_type": "in_channel",
+        "text": "Leaderboard 📊",
+        "blocks": blocks,
+    })
+
+def get_leaderboard_line(rank: int, streak: int, max_streak: int, slack_id: str):
+    resp = client.users_info(user=slack_id)
+    username = resp["user"]["profile"]["real_name"]
+
+    prefix = RANK_PREFIXES.get(rank, f"`{rank + 1}.`")
+    streak_emoji = "🔥" if streak > 0 else "🥀"
+    pr_badge = "  ‼️ *PR*" if streak > 0 and streak == max_streak else ""
+
+    return f"{prefix}  *{username}* — {streak} {streak_emoji} {pr_badge}"
 
 # TEST_URL = "http://127.0.0.1:8000/test"
 # r = requests.get(TEST_URL)
