@@ -42,6 +42,22 @@ def add_user(workspace_id: str, slack_id: str, lc_username: str):
     conn.commit()
     conn.close()
 
+def remove_user(workspace_id: str, slack_id: str):
+    conn = connect()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "DELETE FROM users WHERE workspace_id = %s AND slack_user_id = %s",
+                (workspace_id, slack_id),
+            )
+            deleted = cur.rowcount
+            conn.commit()
+    finally:
+        conn.close()
+    return deleted
+    
+
+
 def fetch_user(workspace_id: str, slack_id: str):
     conn = connect()
     with conn.cursor() as cur:

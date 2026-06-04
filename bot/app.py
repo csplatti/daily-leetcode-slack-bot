@@ -80,8 +80,17 @@ def handle_commands():
             )
             # "text": db_response.text
         })
-
+    elif command == "/quit":
+        return remove_user(user_id, team_id)
     return make_response("Command Not Recognized", 400)
+
+def remove_user(user_id: str, team_id: str):
+    res = requests.post(API_URL + "/remove/" + team_id + "/" + user_id).json()
+    print(res)
+    if res["removed"] == "success":
+        return jsonify({"response_type": "ephemeral", "text": "Successful Removal. Come back soon!"})
+    else:
+        return jsonify({"response_type": "ephemeral", "text": "Removal Unsuccessful..."}) 
 
 RANK_PREFIXES = {0: "🥇", 1: "🥈", 2: "🥉"}
 

@@ -36,3 +36,9 @@ def get_leaderboard(workspace_id: str):
     res = db.getWorkspaceUsers(workspace_id)
     print(res)
     return {"added": "success", "res": res}
+
+@app.post("/remove/{workspace_id}/{user_id}")
+def remove_user(workspace_id: str, user_id: str):
+    res = db.remove_user(workspace_id, user_id)
+    print(res)
+    return {"removed": "success", "res": res}
