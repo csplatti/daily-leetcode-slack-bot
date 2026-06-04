@@ -16,6 +16,8 @@ slack_event_adapter = SlackEventAdapter(os.environ['SLACK_SIGNING_SECRET'],'/sla
 client = WebClient(token=os.environ['SLACK_TOKEN'])
 BOT_ID = client.api_call("auth.test")['user_id']
 
+API_URL = "http://127.0.0.1:8000"
+
 # client.chat_postMessage(channel='#daily-leetcoders', text="Hello!")
 
 if __name__ == "__main__":
@@ -53,10 +55,7 @@ def handle_commands():
         # call your API to link user_id + team_id -> text
         return make_response(f"Linked {text}", 200)
     elif command == "/leaderboard":
-        return jsonify({
-            "response_type": "in_channel",   # only the sender sees this
-            "text": f"Linked hello",
-        })
+        return get_leaderboard(team_id)
     elif command == "/join-tracker":
         lc_username = text
         result = client.users_info(user=user_id)
@@ -67,7 +66,7 @@ def handle_commands():
             "slack_id": user_id,
             "leetcode_username": lc_username,
         }
-        db_res = requests.post("http://127.0.0.1:8000/add-to-tracker", json=json).json()['res']
+        db_res = requests.post(API_URL + "/add-to-tracker", json=json).json()['res']
         print(db_res)
         return jsonify({
             "response_type": "ephemeral",
@@ -84,6 +83,14 @@ def handle_commands():
 
     return make_response("Command Not Recognized", 400)
 
+def get_leaderboard(team_id: str):
+    query_result = requests.get(API_URL + "/leaderboard/" + team_id)
+    print(query_result.json())
+    return jsonify({
+            "response_type": "in_channel",
+            "text": f"Linked hello",
+        })
+
 
 # TEST_URL = "http://127.0.0.1:8000/test"
 # r = requests.get(TEST_URL)
@@ -97,10 +104,10 @@ TEST_WORKSPACE_ID = "000000"
 # print(r)
 # print(r.json())
 
-print("Workspace Streaks")
-GET_WS_USR_INF_URL = "http://127.0.0.1:8000/workspace-streaks/" + TEST_WORKSPACE_ID
-r = requests.get(GET_WS_USR_INF_URL)
-print(r)
-print(r.json())
+# print("Workspace Streaks")
+# GET_WS_USR_INF_URL = API_URL + "/workspace-streaks/" + TEST_WORKSPACE_ID
+# r = requests.get(GET_WS_USR_INF_URL)
+# print(r)
+# print(r.json())
 
 # pull

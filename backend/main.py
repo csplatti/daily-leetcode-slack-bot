@@ -30,3 +30,9 @@ def add_to_tracker(payload: LinkRequest):
     db.add_user(payload.workspace_id, payload.slack_id, payload.leetcode_username)
     res = db.fetch_user(payload.workspace_id, payload.slack_id)
     return {"added": "linked", "res": res, "leetcode_username": payload.leetcode_username}
+
+@app.get("/leaderboard/{workspace_id}")
+def get_leaderboard(workspace_id: str):
+    res = db.getWorkspaceUsers(workspace_id)
+    print(res)
+    return {"added": "success", "res": res}

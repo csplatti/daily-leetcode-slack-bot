@@ -23,7 +23,11 @@ def getWorkspaceUsers(workspace_id: str):
         )
         rows = cur.fetchall()
     conn.close()
-    return rows
+    return [{
+        "slack_id": row[0], 
+        "lc_username": row[1],
+        "current_streak": row[2],
+        "max_streak": row[3]} for row in rows]
 
 def add_user(workspace_id: str, slack_id: str, lc_username: str):
     conn = connect()
