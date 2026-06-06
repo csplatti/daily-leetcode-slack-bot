@@ -4,7 +4,7 @@ from datetime import datetime, timezone, timedelta
 LC_USER_BASE_URL = "https://leetcode.com/graphql"
 TEST_USER = "csplatti"
 
-def getACRequest(username: str):
+def get_ac_request(username: str):
     return {
         "query": "\n    query recentAcSubmissions($username: String!, $limit: Int!) {\n  recentAcSubmissionList(username: $username, limit: $limit) {\n    id\n    title\n    titleSlug\n    timestamp\n  }\n}\n    ",
         "variables": {
@@ -15,9 +15,9 @@ def getACRequest(username: str):
     }
 
 
-def getUserData(username: str):
+def get_user_data(username: str):
     URL = LC_USER_BASE_URL # + "/" + TEST_USER
-    JSON = getACRequest(username)
+    JSON = get_ac_request(username)
     HEADERS = {
     "Content-Type": "application/json",
     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
@@ -27,12 +27,16 @@ def getUserData(username: str):
     data = requests.post(URL, json=JSON, headers=HEADERS).json()
     return data['data']['recentAcSubmissionList']
 
-def getProblemsSolvedOnDate(username: str, date: datetime):
+def get_solved_on_date(username: str, date: datetime):
     WANTED_KEYS = ["title", "titleSlug", "timestamp"]
-    data = getUserData(username)
+    data = get_user_data(username)
     for row in data:
         row["timestamp"] = datetime.fromtimestamp(int(row["timestamp"]), tz=timezone.utc).date()
     data = filter(lambda row: row["timestamp"] == date, data)
     return [{key: row[key] for key in WANTED_KEYS} for row in data]
 
-print(getProblemsSolvedOnDate("csplatti", datetime.today().date() - timedelta(days=2)))
+def num_solved_yesterday(username: str):
+    yestr_date = datetime.today().date() - timedelta(days=1)
+    return len(get_solved_on_date(username, yestr_date))
+
+# print(getProblemsSolvedOnDate("csplatti", datetime.today().date() - timedelta(days=2)))

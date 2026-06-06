@@ -82,6 +82,9 @@ def handle_commands():
         })
     elif command == "/quit":
         return remove_user(user_id, team_id)
+    elif command == "/test":
+        res = requests.get(API_URL + "/test-update")
+        return jsonify({"response_type": "ephemeral", "text": res.status_code})
     return make_response("Command Not Recognized", 400)
 
 def remove_user(user_id: str, team_id: str):

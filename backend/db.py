@@ -13,6 +13,21 @@ def connect():
         password=os.environ.get("DB_PASSWORD"),
     )
 
+def get_all_users():
+    conn = connect()
+    with conn.cursor() as cur:
+        cur.execute(
+            "SELECT * FROM users;"
+        )
+        rows = cur.fetchall()
+    conn.close()
+    return [{
+        "workspace_id": row[0],
+        "slack_id": row[1],
+        "lc_username": row[2],
+        "current_streak": row[3],
+        "max_streak": row[4]} for row in rows]
+
 def getWorkspaceUsers(workspace_id: str):
     conn = connect()
     with conn.cursor() as cur:
@@ -28,6 +43,35 @@ def getWorkspaceUsers(workspace_id: str):
         "lc_username": row[1],
         "current_streak": row[2],
         "max_streak": row[3]} for row in rows]
+
+def add_daily(workspace_id: str, slack_id: str):
+    conn = connect()
+    with conn.cursor() as cur:
+        cur.execute("""
+        UPDATE users
+        SET current_streak = current_streak + 1,
+        max_streak = GREATEST(max_streak, current_streak + 1)
+        WHERE workspace_id = %s AND slack_user_id = %s;
+        """,
+        (workspace_id, slack_id))
+
+    conn.commit()
+    conn.close()
+
+def reset_user(workspace_id: str, slack_id: str):
+    conn = connect()
+    with conn.cursor() as cur:
+        cur.execute("""
+        UPDATE users
+        SET current_streak = 0
+        WHERE workspace_id = %s AND slack_user_id = %s
+        """,
+        (workspace_id, slack_id))
+
+    conn.commit()
+    conn.close()
+
+
 
 def add_user(workspace_id: str, slack_id: str, lc_username: str):
     conn = connect()
