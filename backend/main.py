@@ -25,8 +25,6 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI()
 
-
-@app.get("/test-update")
 def run_daily_update():
     for user_row in db.get_all_users():
         workspace_id = user_row["workspace_id"]
@@ -36,8 +34,6 @@ def run_daily_update():
             db.add_daily(workspace_id, slack_id)
         else:
             db.reset_user(workspace_id, slack_id)
-
-    return {"hello": "there"}
 
 
 @app.get("/test")
@@ -60,7 +56,7 @@ class LinkRequest(BaseModel):
     slack_id: str
     leetcode_username: str
 
-
+# POST requests
 @app.post("/add-to-tracker")
 def add_to_tracker(payload: LinkRequest):
     db.add_user(payload.workspace_id, payload.slack_id, payload.leetcode_username)
@@ -71,7 +67,13 @@ def add_to_tracker(payload: LinkRequest):
         "leetcode_username": payload.leetcode_username,
     }
 
+# DELETE requests
+@app.delete("/{workspace_id}/{user_id}")
+def remove_user(workspace_id: str, user_id: str):
+    res = db.remove_user(workspace_id, user_id)
+    return {"removed": "success", "res": res}
 
+# GET requests
 @app.get("/leaderboard/{workspace_id}")
 def get_leaderboard(workspace_id: str):
     res = db.get_workspace_users(workspace_id)
@@ -82,8 +84,3 @@ def get_num_solved_today(workspace_id: str, user_id: str):
     user_obj = db.fetch_user(workspace_id, user_id)
     print(user_obj)
     return {"res": lc.user_num_solved_today(user_obj["leetcode_username"])}
-
-@app.post("/remove/{workspace_id}/{user_id}")
-def remove_user(workspace_id: str, user_id: str):
-    res = db.remove_user(workspace_id, user_id)
-    return {"removed": "success", "res": res}

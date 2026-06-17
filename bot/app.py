@@ -52,18 +52,14 @@ def handle_commands():
             "leetcode_username": lc_username,
         }
         db_res = requests.post(API_URL + "/add-to-tracker", json=json).json()['res']
-        print(db_res)
         return jsonify({
             "response_type": "ephemeral",
-            # "db_response": db_response.json(),
             "text": (
             "Added!\n"
             f"Leetcode Username: {db_res["leetcode_username"]}\n"
             f"Current Streak: {db_res["current_streak"]}\n"
             f"Max Streak: {db_res["max_streak"]}"
-            
             )
-            # "text": db_response.text
         })
     elif command == "/quit":
         return remove_user(user_id, team_id)
@@ -73,8 +69,7 @@ def handle_commands():
     return make_response("Command Not Recognized", 400)
 
 def remove_user(user_id: str, team_id: str):
-    res = requests.post(API_URL + "/remove/" + team_id + "/" + user_id).json()
-    print(res)
+    res = requests.delete(f"{API_URL}/{team_id}/{user_id}").json()
     if res["removed"] == "success":
         return jsonify({"response_type": "ephemeral", "text": "Successful Removal. Come back soon!"})
     else:
