@@ -8,6 +8,8 @@ import requests
 import db
 import leetcode as lc
 
+app = FastAPI()
+
 scheduler = AsyncIOScheduler()
 
 @asynccontextmanager
@@ -22,8 +24,10 @@ async def lifespan(app: FastAPI):
     yield
     scheduler.shutdown()
 
-
-app = FastAPI()
+class LinkRequest(BaseModel):
+    workspace_id: str
+    slack_id: str
+    leetcode_username: str
 
 def run_daily_update():
     for user_row in db.get_all_users():
@@ -35,20 +39,17 @@ def run_daily_update():
         else:
             db.reset_user(workspace_id, slack_id)
 
+# GET requests
+@app.get("/{workspace_id}/leaderboard")
+def get_leaderboard(workspace_id: str):
+    res = db.get_workspace_users(workspace_id)
+    return {"added": "success", "res": res}
 
-@app.get("/workspace-participants/{workspace_id}")
-def get_workspace_participants(workspace_id: str):
-    return db.get_workspace_users(workspace_id)
-
-
-@app.get("/workspace-streaks/{workspace_id}")
-def get_workspace_streaks(workspace_id: str):
-    return db.get_workspace_users(workspace_id)
-
-class LinkRequest(BaseModel):
-    workspace_id: str
-    slack_id: str
-    leetcode_username: str
+@app.get("/{workspace_id}/{user_id}/num-solved-today")
+def get_num_solved_today(workspace_id: str, user_id: str):
+    user_obj = db.fetch_user(workspace_id, user_id)
+    print(user_obj)
+    return {"res": lc.user_num_solved_today(user_obj["leetcode_username"])}
 
 # POST requests
 @app.post("/add-to-tracker")
@@ -66,15 +67,3 @@ def add_to_tracker(payload: LinkRequest):
 def remove_user(workspace_id: str, user_id: str):
     res = db.remove_user(workspace_id, user_id)
     return {"removed": "success", "res": res}
-
-# GET requests
-@app.get("/{workspace_id}/leaderboard")
-def get_leaderboard(workspace_id: str):
-    res = db.get_workspace_users(workspace_id)
-    return {"added": "success", "res": res}
-
-@app.get("/{workspace_id}/{user_id}/num-solved-today")
-def get_num_solved_today(workspace_id: str, user_id: str):
-    user_obj = db.fetch_user(workspace_id, user_id)
-    print(user_obj)
-    return {"res": lc.user_num_solved_today(user_obj["leetcode_username"])}
