@@ -11,26 +11,10 @@ load_dotenv(dotenv_path=env_path)
 
 app = Flask(__name__)
 slack_event_adapter = SlackEventAdapter(os.environ['SLACK_SIGNING_SECRET'],'/slack/events',app)
-
-
 client = WebClient(token=os.environ['SLACK_TOKEN'])
+
 BOT_ID = client.api_call("auth.test")['user_id']
-
 API_URL = "http://127.0.0.1:8000"
-
-# client.chat_postMessage(channel='#daily-leetcoders', text="Hello!")
-
-if __name__ == "__main__":
-    app.run(debug=True)
-
-# @slack_event_adapter.on('message')
-# def message(payload):
-#     event = payload.get('event', {})
-#     channel_id = event.get('channel')
-#     user_id = event.get('user')
-#     text = event.get('text')
-#     if user_id != BOT_ID:
-#         client.chat_postMessage(channel=channel_id, text=text)
 
 @slack_event_adapter.on('app_mention')
 def message(payload):
@@ -101,10 +85,9 @@ def get_leaderboard(team_id: str):
     query_result = requests.get(API_URL + "/leaderboard/" + team_id).json()
     res = sorted(query_result['res'], key=lambda x: x['current_streak'], reverse=True)
 
-    lines = [
-        get_leaderboard_line(i, row["current_streak"], row["max_streak"], row["slack_id"])
-        for i, row in enumerate(res)
-    ]
+    lines = []
+    for i, row in enumerate(res):
+        lines.append(get_leaderboard_line(i, row["current_streak"], row["max_streak"], row["slack_id"], row["workspace_id"], row["lc_username"]))
 
     blocks = [
         {
@@ -124,32 +107,24 @@ def get_leaderboard(team_id: str):
         "blocks": blocks,
     })
 
-def get_leaderboard_line(rank: int, streak: int, max_streak: int, slack_id: str):
+def get_leaderboard_line(rank: int, streak: int, max_streak: int, slack_id: str, workspace_id: str, lc_username: str):
     resp = client.users_info(user=slack_id)
     username = resp["user"]["profile"]["real_name"]
+    num_solved_today = requests.get(f"{API_URL}/{workspace_id}/{slack_id}/num-solved-today").json()['res']
+
+    if num_solved_today > 0:
+        streak += 1
 
     prefix = RANK_PREFIXES.get(rank, f"`{rank + 1}.`")
     streak_emoji = "🔥" if streak > 0 else "🥀"
-    pr_badge = "  ‼️ *PR*" if streak > 0 and streak == max_streak else ""
+    today_badge = f"✅ +{num_solved_today} today" if num_solved_today > 0 else "⭕ today"
+    parts = [f"{streak_emoji} {streak}", today_badge]
+    if streak > 0 and streak == max_streak:
+        parts.append("‼️ *PR*")
 
-    return f"{prefix}  *{username}* — {streak} {streak_emoji} {pr_badge}"
+    return f"{prefix}  *{username}*  ·  " + "  ·  ".join(parts)
+    # TODO: Implement better error handling
 
-# TEST_URL = "http://127.0.0.1:8000/test"
-# r = requests.get(TEST_URL)
-# print(r)
-# print(r.json())
-TEST_WORKSPACE_ID = "000000"
 
-# print("Workspace Participants:")
-# GET_WS_URL = "http://127.0.0.1:8000/workspace-participants/" + TEST_WORKSPACE_ID
-# r = requests.get(GET_WS_URL)
-# print(r)
-# print(r.json())
-
-# print("Workspace Streaks")
-# GET_WS_USR_INF_URL = API_URL + "/workspace-streaks/" + TEST_WORKSPACE_ID
-# r = requests.get(GET_WS_USR_INF_URL)
-# print(r)
-# print(r.json())
-
-# pull
+if __name__ == "__main__":
+    app.run(debug=True, port=5001)

@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
 def connect():
     return psycopg.connect(
         host=os.environ["DB_HOST"],
@@ -13,78 +14,94 @@ def connect():
         password=os.environ.get("DB_PASSWORD"),
     )
 
+
 def get_all_users():
     conn = connect()
     with conn.cursor() as cur:
-        cur.execute(
-            "SELECT * FROM users;"
-        )
+        cur.execute("SELECT * FROM users;")
         rows = cur.fetchall()
     conn.close()
-    return [{
-        "workspace_id": row[0],
-        "slack_id": row[1],
-        "lc_username": row[2],
-        "current_streak": row[3],
-        "max_streak": row[4]} for row in rows]
+    return [
+        {
+            "workspace_id": row[0],
+            "slack_id": row[1],
+            "lc_username": row[2],
+            "current_streak": row[3],
+            "max_streak": row[4],
+        }
+        for row in rows
+    ]
 
-def getWorkspaceUsers(workspace_id: str):
+
+def get_workspace_users(workspace_id: str):
     conn = connect()
     with conn.cursor() as cur:
         cur.execute(
-        "SELECT slack_user_id, leetcode_username, current_streak, max_streak "
-        "FROM users WHERE workspace_id = %s",
-        (workspace_id,),
+            "SELECT slack_user_id, leetcode_username, current_streak, max_streak "
+            "FROM users WHERE workspace_id = %s",
+            (workspace_id,),
         )
         rows = cur.fetchall()
     conn.close()
-    return [{
-        "slack_id": row[0], 
-        "lc_username": row[1],
-        "current_streak": row[2],
-        "max_streak": row[3]} for row in rows]
+    return [
+        {
+            "slack_id": row[0],
+            "workspace_id": workspace_id,
+            "lc_username": row[1],
+            "current_streak": row[2],
+            "max_streak": row[3],
+        }
+        for row in rows
+    ]
+
 
 def add_daily(workspace_id: str, slack_id: str):
     conn = connect()
     with conn.cursor() as cur:
-        cur.execute("""
+        cur.execute(
+            """
         UPDATE users
         SET current_streak = current_streak + 1,
         max_streak = GREATEST(max_streak, current_streak + 1)
         WHERE workspace_id = %s AND slack_user_id = %s;
         """,
-        (workspace_id, slack_id))
+            (workspace_id, slack_id),
+        )
 
     conn.commit()
     conn.close()
+
 
 def reset_user(workspace_id: str, slack_id: str):
     conn = connect()
     with conn.cursor() as cur:
-        cur.execute("""
+        cur.execute(
+            """
         UPDATE users
         SET current_streak = 0
         WHERE workspace_id = %s AND slack_user_id = %s
         """,
-        (workspace_id, slack_id))
+            (workspace_id, slack_id),
+        )
 
     conn.commit()
     conn.close()
-
 
 
 def add_user(workspace_id: str, slack_id: str, lc_username: str):
     conn = connect()
     with conn.cursor() as cur:
         cur.execute(
-        """
+            """
         INSERT INTO users (workspace_id, slack_user_id, leetcode_username)
         VALUES (%s, %s, %s);
-        """, 
-        (workspace_id, slack_id, lc_username))
-    
+        """,
+            (workspace_id, slack_id, lc_username),
+        )
+
     conn.commit()
     conn.close()
+
 
 def remove_user(workspace_id: str, slack_id: str):
     conn = connect()
@@ -99,25 +116,21 @@ def remove_user(workspace_id: str, slack_id: str):
     finally:
         conn.close()
     return deleted
-    
 
 
 def fetch_user(workspace_id: str, slack_id: str):
     conn = connect()
     with conn.cursor() as cur:
         cur.execute(
-        """
+            """
             SELECT slack_user_id, leetcode_username, current_streak, max_streak
             FROM users
             WHERE workspace_id = %s AND slack_user_id = %s;
         """,
-        (workspace_id, slack_id))
+            (workspace_id, slack_id),
+        )
         res = cur.fetchall()[0]
         print(res)
 
     conn.close()
-    return {
-        "leetcode_username": res[1],
-        "current_streak": res[2],
-        "max_streak": res[3]
-    }
+    return {"leetcode_username": res[1], "current_streak": res[2], "max_streak": res[3]}

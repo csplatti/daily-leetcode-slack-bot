@@ -27,6 +27,10 @@ def get_user_data(username: str):
     data = requests.post(URL, json=JSON, headers=HEADERS).json()
     return data['data']['recentAcSubmissionList']
 
+def user_num_solved_today(username: str):
+    today = datetime.today().date()
+    return len(get_solved_on_date(username, today))
+
 def get_solved_on_date(username: str, date: datetime):
     WANTED_KEYS = ["title", "titleSlug", "timestamp"]
     data = get_user_data(username)
