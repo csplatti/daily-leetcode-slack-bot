@@ -1,6 +1,7 @@
 import requests
 from slack_sdk import WebClient
 import os
+from datetime import datetime, timezone, timedelta
 from flask import Flask, request, make_response, jsonify
 from pathlib import Path
 from dotenv import load_dotenv
@@ -89,10 +90,22 @@ def get_leaderboard(team_id: str):
     for i, row in enumerate(res):
         lines.append(get_leaderboard_line(i, row["current_streak"], row["max_streak"], row["slack_id"], row["workspace_id"], row["lc_username"]))
 
+    now = datetime.now(timezone.utc)
+    next_midnight = (now + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+    delta = next_midnight - now
+    hours, remainder = divmod(delta.seconds, 3600)
+    minutes = remainder // 60
+
     blocks = [
         {
             "type": "header",
             "text": {"type": "plain_text", "text": "🏆 Leaderboard", "emoji": True},
+        },
+        {
+            "type": "context",
+            "elements": [
+                {"type": "mrkdwn", "text": f"⏰ *{hours}h {minutes}m left* to solve today's problem — streaks reset at midnight UTC"}
+            ],
         },
         {"type": "divider"},
         {
