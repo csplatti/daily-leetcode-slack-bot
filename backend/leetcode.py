@@ -19,9 +19,9 @@ def get_user_data(username: str):
     URL = LC_USER_BASE_URL # + "/" + TEST_USER
     JSON = get_ac_request(username)
     HEADERS = {
-    "Content-Type": "application/json",
-    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
-    "Referer": "https://leetcode.com",
+        "Content-Type": "application/json",
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+        "Referer": "https://leetcode.com",
     }
 
     data = requests.post(URL, json=JSON, headers=HEADERS).json()
@@ -42,5 +42,3 @@ def get_solved_on_date(username: str, date: datetime):
 def num_solved_yesterday(username: str):
     yestr_date = datetime.today().date() - timedelta(days=1)
     return len(get_solved_on_date(username, yestr_date))
-
-# print(getProblemsSolvedOnDate("csplatti", datetime.today().date() - timedelta(days=2)))

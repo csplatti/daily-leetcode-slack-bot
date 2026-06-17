@@ -35,38 +35,40 @@ def handle_commands():
     text = request.form.get("text")            # "csplatti"
     user_id = request.form.get("user_id")
     team_id = request.form.get("team_id")      # your workspace scope
+    try:
+        if command == "/leetcode-link":
+            # call your API to link user_id + team_id -> text
+            return make_response(f"Linked {text}", 200)
+        elif command == "/leaderboard":
+            return get_leaderboard(team_id)
+        elif command == "/join-tracker":
+            lc_username = text
+            result = client.users_info(user=user_id)
+            username = result["user"]["name"]
 
-    if command == "/leetcode-link":
-        # call your API to link user_id + team_id -> text
-        return make_response(f"Linked {text}", 200)
-    elif command == "/leaderboard":
-        return get_leaderboard(team_id)
-    elif command == "/join-tracker":
-        lc_username = text
-        result = client.users_info(user=user_id)
-        username = result["user"]["name"]
-
-        json = {
-            "workspace_id": team_id,
-            "slack_id": user_id,
-            "leetcode_username": lc_username,
-        }
-        db_res = requests.post(API_URL + "/add-to-tracker", json=json).json()['res']
-        return jsonify({
-            "response_type": "ephemeral",
-            "text": (
-            "Added!\n"
-            f"Leetcode Username: {db_res["leetcode_username"]}\n"
-            f"Current Streak: {db_res["current_streak"]}\n"
-            f"Max Streak: {db_res["max_streak"]}"
-            )
-        })
-    elif command == "/quit":
-        return remove_user(user_id, team_id)
-    elif command == "/test":
-        res = requests.get(API_URL + "/test-update")
-        return jsonify({"response_type": "ephemeral", "text": res.status_code})
-    return make_response("Command Not Recognized", 400)
+            json = {
+                "workspace_id": team_id,
+                "slack_id": user_id,
+                "leetcode_username": lc_username,
+            }
+            db_res = requests.post(API_URL + "/add-to-tracker", json=json).json()['res']
+            return jsonify({
+                "response_type": "ephemeral",
+                "text": (
+                "Added!\n"
+                f"Leetcode Username: {db_res["leetcode_username"]}\n"
+                f"Current Streak: {db_res["current_streak"]}\n"
+                f"Max Streak: {db_res["max_streak"]}"
+                )
+            })
+        elif command == "/quit":
+            return remove_user(user_id, team_id)
+        elif command == "/test":
+            res = requests.get(API_URL + "/test-update")
+            return jsonify({"response_type": "ephemeral", "text": res.status_code})
+        return make_response("Command Not Recognized", 400)
+    except:
+        return make_response("An Error Occured", 500)
 
 def remove_user(user_id: str, team_id: str):
     res = requests.delete(f"{API_URL}/{team_id}/{user_id}").json()

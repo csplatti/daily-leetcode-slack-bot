@@ -4,7 +4,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-
 def connect():
     return psycopg.connect(
         host=os.environ["DB_HOST"],
@@ -31,7 +30,6 @@ def get_all_users():
         }
         for row in rows
     ]
-
 
 def get_workspace_users(workspace_id: str):
     conn = connect()
