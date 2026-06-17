@@ -36,11 +36,6 @@ def run_daily_update():
             db.reset_user(workspace_id, slack_id)
 
 
-@app.get("/test")
-def test():
-    return {"test": "successful"}
-
-
 @app.get("/workspace-participants/{workspace_id}")
 def get_workspace_participants(workspace_id: str):
     return db.get_workspace_users(workspace_id)
@@ -49,7 +44,6 @@ def get_workspace_participants(workspace_id: str):
 @app.get("/workspace-streaks/{workspace_id}")
 def get_workspace_streaks(workspace_id: str):
     return db.get_workspace_users(workspace_id)
-
 
 class LinkRequest(BaseModel):
     workspace_id: str
@@ -74,7 +68,7 @@ def remove_user(workspace_id: str, user_id: str):
     return {"removed": "success", "res": res}
 
 # GET requests
-@app.get("/leaderboard/{workspace_id}")
+@app.get("/{workspace_id}/leaderboard")
 def get_leaderboard(workspace_id: str):
     res = db.get_workspace_users(workspace_id)
     return {"added": "success", "res": res}

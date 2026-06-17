@@ -78,7 +78,7 @@ def remove_user(user_id: str, team_id: str):
 RANK_PREFIXES = {0: "🥇", 1: "🥈", 2: "🥉"}
 
 def get_leaderboard(team_id: str):
-    query_result = requests.get(API_URL + "/leaderboard/" + team_id).json()
+    query_result = requests.get(f"{API_URL}/{team_id}/leaderboard/").json()
     res = sorted(query_result['res'], key=lambda x: x['current_streak'], reverse=True)
 
     lines = []
