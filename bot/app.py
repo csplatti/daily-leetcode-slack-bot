@@ -108,10 +108,44 @@ def handle_commands():
 
 def remove_user(user_id: str, team_id: str):
     res = requests.delete(f"{API_URL}/{team_id}/{user_id}").json()
-    if res["removed"] == "success":
-        return jsonify({"response_type": "ephemeral", "text": "Successful Removal. Come back soon!"})
-    else:
-        return jsonify({"response_type": "ephemeral", "text": "Removal Unsuccessful..."}) 
+    rows_deleted = res.get("res", 0)
+
+    if rows_deleted == 0:
+        blocks = [
+            {
+                "type": "header",
+                "text": {"type": "plain_text", "text": "🤔 Not on the tracker", "emoji": True},
+            },
+            {
+                "type": "context",
+                "elements": [
+                    {"type": "mrkdwn", "text": "You're not currently tracked. Use `/join-tracker <leetcode-username>` to start your streak."}
+                ],
+            },
+        ]
+        return jsonify({
+            "response_type": "ephemeral",
+            "text": "You're not currently on the tracker.",
+            "blocks": blocks,
+        })
+
+    blocks = [
+        {
+            "type": "header",
+            "text": {"type": "plain_text", "text": "👋 You're out!", "emoji": True},
+        },
+        {
+            "type": "context",
+            "elements": [
+                {"type": "mrkdwn", "text": "Your streak data has been cleared. Come back anytime with `/join-tracker`."}
+            ],
+        },
+    ]
+    return jsonify({
+        "response_type": "ephemeral",
+        "text": "Removed — come back soon!",
+        "blocks": blocks,
+    })
 
 RANK_PREFIXES = {0: "🥇", 1: "🥈", 2: "🥉"}
 
