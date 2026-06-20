@@ -15,7 +15,7 @@ slack_event_adapter = SlackEventAdapter(os.environ['SLACK_SIGNING_SECRET'],'/sla
 client = WebClient(token=os.environ['SLACK_TOKEN'])
 
 BOT_ID = client.api_call("auth.test")['user_id']
-API_URL = "http://127.0.0.1:8000"
+API_URL = os.environ.get("BACKEND_API_URL", "http://127.0.0.1:8000")
 
 @slack_event_adapter.on('app_mention')
 def message(payload):
@@ -139,4 +139,4 @@ def get_leaderboard_line(rank: int, streak: int, max_streak: int, slack_id: str,
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5001)
+    app.run(debug=True, host="0.0.0.0", port=5001)
