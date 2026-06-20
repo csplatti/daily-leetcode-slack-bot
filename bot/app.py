@@ -44,22 +44,44 @@ def handle_commands():
         elif command == "/join-tracker":
             lc_username = text
             result = client.users_info(user=user_id)
-            username = result["user"]["name"]
+            real_name = result["user"]["profile"]["real_name"]
 
-            json = {
+            payload = {
                 "workspace_id": team_id,
                 "slack_id": user_id,
                 "leetcode_username": lc_username,
             }
-            db_res = requests.post(API_URL + "/add-to-tracker", json=json).json()['res']
+            db_res = requests.post(API_URL + "/add-to-tracker", json=payload).json()['res']
+
+            num_solved_today = requests.get(f"{API_URL}/{team_id}/{user_id}/num-solved-today").json()['res']
+            current_streak = db_res['current_streak'] + (1 if num_solved_today > 0 else 0)
+            today_badge = f"✅ +{num_solved_today} today" if num_solved_today > 0 else "⭕ today"
+
+            blocks = [
+                {
+                    "type": "header",
+                    "text": {"type": "plain_text", "text": "🎉 You're in!", "emoji": True},
+                },
+                {
+                    "type": "context",
+                    "elements": [
+                        {"type": "mrkdwn", "text": f"Welcome, *{real_name}* — tracking `{db_res['leetcode_username']}` on LeetCode."}
+                    ],
+                },
+                {"type": "divider"},
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": f"🔥 *Current Streak:* {current_streak}   |   🏆 *Max Streak:* {db_res['max_streak']}   |   {today_badge}",
+                    },
+                },
+            ]
+
             return jsonify({
                 "response_type": "ephemeral",
-                "text": (
-                "Added!\n"
-                f"Leetcode Username: {db_res["leetcode_username"]}\n"
-                f"Current Streak: {db_res["current_streak"]}\n"
-                f"Max Streak: {db_res["max_streak"]}"
-                )
+                "text": f"Welcome, {real_name}!",
+                "blocks": blocks,
             })
         elif command == "/quit":
             return remove_user(user_id, team_id)

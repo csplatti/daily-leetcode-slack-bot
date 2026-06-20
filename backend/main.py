@@ -8,8 +8,6 @@ import requests
 import db
 import leetcode as lc
 
-app = FastAPI()
-
 scheduler = AsyncIOScheduler()
 
 @asynccontextmanager
@@ -23,6 +21,8 @@ async def lifespan(app: FastAPI):
     scheduler.start()
     yield
     scheduler.shutdown()
+
+app = FastAPI(lifespan=lifespan)
 
 class LinkRequest(BaseModel):
     workspace_id: str
