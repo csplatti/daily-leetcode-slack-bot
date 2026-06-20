@@ -88,17 +88,18 @@ def reset_user(workspace_id: str, slack_id: str):
 
 def add_user(workspace_id: str, slack_id: str, lc_username: str):
     conn = connect()
-    with conn.cursor() as cur:
-        cur.execute(
-            """
-        INSERT INTO users (workspace_id, slack_user_id, leetcode_username)
-        VALUES (%s, %s, %s);
-        """,
-            (workspace_id, slack_id, lc_username),
-        )
-
-    conn.commit()
-    conn.close()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+            INSERT INTO users (workspace_id, slack_user_id, leetcode_username)
+            VALUES (%s, %s, %s);
+            """,
+                (workspace_id, slack_id, lc_username),
+            )
+        conn.commit()
+    finally:
+        conn.close()
 
 
 def remove_user(workspace_id: str, slack_id: str):

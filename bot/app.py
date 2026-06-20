@@ -42,7 +42,13 @@ def handle_commands():
         elif command == "/leaderboard":
             return get_leaderboard(team_id)
         elif command == "/join-tracker":
-            lc_username = text
+            lc_username = (text or "").strip()
+            if not lc_username:
+                return jsonify({
+                    "response_type": "ephemeral",
+                    "text": "Usage: `/join-tracker <your-leetcode-username>`\nExample: `/join-tracker csplatti`",
+                })
+
             result = client.users_info(user=user_id)
             real_name = result["user"]["profile"]["real_name"]
 
@@ -51,7 +57,13 @@ def handle_commands():
                 "slack_id": user_id,
                 "leetcode_username": lc_username,
             }
-            db_res = requests.post(API_URL + "/add-to-tracker", json=payload).json()['res']
+            resp = requests.post(API_URL + "/add-to-tracker", json=payload)
+            if resp.status_code == 409:
+                return jsonify({
+                    "response_type": "ephemeral",
+                    "text": "You're already on the tracker! Try `/leaderboard` to see how you're doing.",
+                })
+            db_res = resp.json()['res']
 
             num_solved_today = requests.get(f"{API_URL}/{team_id}/{user_id}/num-solved-today").json()['res']
             current_streak = db_res['current_streak'] + (1 if num_solved_today > 0 else 0)

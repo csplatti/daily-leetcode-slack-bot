@@ -1,9 +1,10 @@
 # REST API endpoints
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from contextlib import asynccontextmanager
+from psycopg import errors as pg_errors
 import requests
 import db
 import leetcode as lc
@@ -54,7 +55,10 @@ def get_num_solved_today(workspace_id: str, user_id: str):
 # POST requests
 @app.post("/add-to-tracker")
 def add_to_tracker(payload: LinkRequest):
-    db.add_user(payload.workspace_id, payload.slack_id, payload.leetcode_username)
+    try:
+        db.add_user(payload.workspace_id, payload.slack_id, payload.leetcode_username)
+    except pg_errors.UniqueViolation:
+        raise HTTPException(status_code=409, detail="already_joined")
     res = db.fetch_user(payload.workspace_id, payload.slack_id)
     return {
         "added": "linked",
