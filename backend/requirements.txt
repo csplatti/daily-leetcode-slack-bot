@@ -1,0 +1,5 @@
+fastapi[standard]
+apscheduler
+requests
+psycopg[binary]
+python-dotenv

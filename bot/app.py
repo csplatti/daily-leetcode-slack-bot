@@ -67,8 +67,10 @@ def handle_commands():
             res = requests.get(API_URL + "/test-update")
             return jsonify({"response_type": "ephemeral", "text": res.status_code})
         return make_response("Command Not Recognized", 400)
-    except:
-        return make_response("An Error Occured", 500)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return make_response(f"An Error Occured: {e}", 500)
 
 def remove_user(user_id: str, team_id: str):
     res = requests.delete(f"{API_URL}/{team_id}/{user_id}").json()
