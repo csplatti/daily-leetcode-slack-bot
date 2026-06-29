@@ -166,7 +166,7 @@ def get_leaderboard(team_id: str):
     blocks = [
         {
             "type": "header",
-            "text": {"type": "plain_text", "text": "🏆 Leaderboard", "emoji": True},
+            "text": {"type": "plain_text", "text": "🏆 Leaderboard!", "emoji": True},
         },
         {
             "type": "context",
