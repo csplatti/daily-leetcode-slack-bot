@@ -1,6 +1,6 @@
 # Daily LeetCode Slack Bot
 
-A Slack bot that tracks the LeetCode activity of everyone in a channel and posts a daily summary of who solved problems. Built to turn solo grinding into a low-key group accountability loop.
+A Slack bot that tracks the LeetCode activity of everyone in a channel and posts a daily summary of who solved problems.
 
 ![/leaderboard Example](./readme_images/image.png)
 
@@ -30,7 +30,7 @@ flowchart LR
 ```
 - **Bot service** handles Slack events and slash commands, and posts the daily summary. It holds no data of its own and talks to the backend over the internal network.
 - **Backend API** owns all business logic and database access, and queries LeetCode for member activity.
-- **PostgreSQL** stores registered members and their submission history. The schema is initialized from `db/init.sql`.
+- **PostgreSQL** stores registered members, their current streak lengths, and their streak records. The schema is initialized from `db/init.sql`.
 
 Splitting the Slack-facing bot from the backend keeps the API reusable and the data layer isolated behind a single service.
 
