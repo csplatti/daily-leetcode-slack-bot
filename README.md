@@ -2,14 +2,11 @@
 
 A Slack bot that tracks the LeetCode activity of everyone in a channel and posts a daily summary of who solved problems. Built to turn solo grinding into a low-key group accountability loop.
 
-<!-- TODO: drop a screenshot or GIF of the daily message in Slack here. This is the single highest-value addition to the README. -->
-<!-- ![Daily summary in Slack](docs/demo.png) -->
+![/leaderboard Example](./readme_images/image.png)
 
-## What it does
+## What it Does
 
-Members register their LeetCode username with the bot. Once a day, the bot checks each registered member's recent submissions and posts a summary to the channel showing who solved problems that day. The result is a daily nudge that makes solving (or not solving) visible to the group.
-
-<!-- TODO: confirm/adjust. If it tracks running streaks, say "and their current streak". If it only reports same-day completions, "who solved problems that day" is the honest framing. -->
+Members register their LeetCode username with the bot to initialize a streak. Every day at UTC midnight, the bot checks each registered member's recent submissions and updates an internal streak tracker to reflect each user's new streak. Using the `/leaderboard` command, users can check their streaks and rankings relative to other participants.
 
 ## Architecture
 
@@ -32,24 +29,24 @@ flowchart LR
     bot -->|post daily summary| slack
 ```
 
-- **Caddy** terminates TLS and reverse-proxies inbound Slack traffic, handling HTTPS automatically.
+- **Caddy** terminates TLS and reverse-proxies inbound Slack traffic to the bot, handling HTTPS certificates automatically via Let's Encrypt.
 - **Bot service** handles Slack events and slash commands, and posts the daily summary. It holds no data of its own and talks to the backend over the internal network.
 - **Backend API** owns all business logic and database access, and queries LeetCode for member activity.
 - **PostgreSQL** stores registered members and their submission history. The schema is initialized from `db/init.sql`.
 
 Splitting the Slack-facing bot from the backend keeps the API reusable and the data layer isolated behind a single service.
 
-## Tech stack
+## Tech Stack
 
 - **Language:** Python
-- **Backend:** FastAPI <!-- TODO: confirm framework -->
-- **Bot:** Slack SDK <!-- TODO: confirm bot framework, e.g. Flask + slack_sdk -->
+- **Backend:** FastAPI
+- **Bot:** Flask + Slack SDK
 - **Database:** PostgreSQL 16
 - **Infra:** Docker, Docker Compose, Caddy
-- **CI/CD:** GitHub Actions <!-- TODO: state what the workflow actually does, e.g. "builds images and deploys to AWS EC2 on push to main" -->
-- **Hosting:** AWS EC2 <!-- TODO: confirm -->
+- **CI/CD:** GitHub Actions (deploy on push)
+- **Hosting:** AWS EC2
 
-## Running locally
+## Running Locally
 
 Requires Docker and Docker Compose.
 
@@ -63,24 +60,25 @@ docker compose up --build
 
 The stack will come up with Postgres, the backend API, the bot, and Caddy. The database schema is created automatically from `db/init.sql` on first run.
 
-### Environment variables
+### Environment Variables
 
 See `.env.example` for the full list. At minimum you'll need:
 
 - `DB_NAME`, `DB_USER`, `DB_PASSWORD` — Postgres credentials
-- `SLACK_BOT_TOKEN`, `SLACK_SIGNING_SECRET` — from your Slack app config <!-- TODO: confirm exact var names -->
-- <!-- TODO: any LeetCode / scheduler config -->
+- `SLACK_TOKEN`, `SLACK_SIGNING_SECRET` — from your Slack app config
 
-### Slack app setup
-
-<!-- TODO: brief steps. e.g. create a Slack app, add the bot scopes you use, set the Request URL to your Caddy domain, install to the workspace. List the scopes so reviewers see you understand least-privilege. -->
+### Slack App Setup
+Create a slack bot in your Slack Developer Account and add the following scopes:
+![Bot Slack Scopes](./readme_images/bot-scopes.png)
+Add the following slash commands:
+![Bot Slash Commands](./readme_images/slash-commands.png)
+Set the request URL to port 5001 on your *public* server (or whatever port you may have listed in the Caddyfile) and install the app to your workspace.
 
 ## Deployment
 
-<!-- TODO: describe honestly. Something like:
-Pushing to `main` triggers a GitHub Actions workflow that [builds the images / pushes to a registry / SSHes into the EC2 instance and runs docker compose pull && up]. Caddy handles TLS for the public domain. -->
+Pushing to the main branch triggers a GitHub Actions workflow that SSHes into an EC2 instance, pulls the repository changes, and runs docker compose.
 
-## Project structure
+## Project Structure
 
 ```
 backend/              FastAPI service: API, business logic, LeetCode integration
@@ -92,8 +90,10 @@ docker-compose.yml    Service orchestration
 .env.example          Required environment variables
 ```
 
-## Notes and limitations
+## Notes and Limitations
 
-LeetCode has no official public API, so member activity is pulled from [unofficial endpoints / GraphQL / scraping <!-- TODO: say which -->]. This works well for a single channel but is inherently fragile to upstream changes, which is why the project is self-hosted rather than distributed publicly.
+LeetCode has no official public API, so member activity is pulled from an unofficial GraphQL endpoint. This works well for a single project but is inherently fragile to upstream changes.
 
+## Next Steps
+A feature that I would like to add is a command which toggles an option for the bot to send a daily leaderboard update to a specified channel. This way, participants can have more accountability via a daily message which will "expose their lost streak", without forcing users to have a daily message which could annoy them. Implementing this would involve adding a new command, and modifying the database to store information about workspaces in addition to individual users.
 <!-- TODO (optional): a short "Roadmap" or "What I'd do next" section reads well on a portfolio project, e.g. multi-workspace OAuth install flow, streak leaderboards, tests. -->
