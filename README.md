@@ -28,8 +28,6 @@ flowchart LR
     backend -->|fetch member activity| lc
     bot -->|post daily summary| slack
 ```
-
-- **Caddy** terminates TLS and reverse-proxies inbound Slack traffic to the bot, handling HTTPS certificates automatically via Let's Encrypt.
 - **Bot service** handles Slack events and slash commands, and posts the daily summary. It holds no data of its own and talks to the backend over the internal network.
 - **Backend API** owns all business logic and database access, and queries LeetCode for member activity.
 - **PostgreSQL** stores registered members and their submission history. The schema is initialized from `db/init.sql`.
